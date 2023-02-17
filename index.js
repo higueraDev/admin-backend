@@ -5,22 +5,21 @@ const cors = require("cors");
 
 const { dbConnection } = require("./database/config");
 
-// SERVER
-const app = express();
-
 // DATABASE
 dbConnection();
+
+// SERVER
+const app = express();
 
 // CORS
 app.use(cors());
 
+// READ_BODY
+app.use(express.json());
+
+
 // ROUTES
-app.get("/", (request, response) => {
-	response.status(200).json({
-		ok: true,
-		msg: "Hello World",
-	});
-});
+app.use("/api/users", require("./routes/users"));
 
 // SERVER PORT
 app.listen(process.env.PORT, () => {
