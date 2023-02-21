@@ -17,9 +17,9 @@ app.use(cors());
 // READ_BODY
 app.use(express.json());
 
-
 // ROUTES
 app.use("/api/users", require("./routes/users"));
+app.use("/api/login", require("./routes/auth"));
 
 // SERVER PORT
 app.listen(process.env.PORT, () => {
