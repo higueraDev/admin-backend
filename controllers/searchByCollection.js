@@ -1,5 +1,5 @@
 const { response } = require("express");
-const { getTable } = require("../helpers/getTable");
+const { getCollection } = require("../helpers/getCollection");
 
 const searchByCollection = async (req, res = response) => {
 	try {
@@ -7,9 +7,9 @@ const searchByCollection = async (req, res = response) => {
 
 		const regex = new RegExp(query, "i");
 
-		const tableDB = getTable(table);
+		const collectionDB = getCollection(table);
 
-		if (!tableDB)
+		if (!collectionDB)
 			return res.status(400).json({
 				ok: false,
 				msg: "The table doesn't exists",
@@ -17,10 +17,10 @@ const searchByCollection = async (req, res = response) => {
 
 		const result =
 			table !== "users"
-				? await tableDB
+				? await collectionDB
 						.find({ name: regex })
 						.populate("createdBy", "name image")
-				: await tableDB.find({ name: regex });
+				: await collectionDB.find({ name: regex });
 
 		res.json({
 			ok: true,

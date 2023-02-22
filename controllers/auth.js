@@ -22,7 +22,7 @@ const login = async (req, res = response) => {
 
 		res.json({
 			ok: true,
-			msg: token,
+			token,
 		});
 	} catch (error) {
 		console.error(error);

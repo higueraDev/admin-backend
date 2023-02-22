@@ -4,6 +4,6 @@ const { download } = require("../controllers/download");
 
 const router = Router();
 
-router.get("/:collection/:id", download);
+router.get("/:collection/:id",download);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-const getTable = (table) => {
+const getCollection = (table) => {
 	const tables = {
 		hospitals: require("../models/hospital"),
 		physicians: require("../models/physician"),
@@ -9,5 +9,5 @@ const getTable = (table) => {
 };
 
 module.exports = {
-	getTable,
+	getCollection,
 };
