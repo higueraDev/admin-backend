@@ -14,6 +14,9 @@ const app = express();
 // CORS
 app.use(cors());
 
+//PUBLIC
+app.use(express.static('public'))
+
 // READ_BODY
 app.use(express.json());
 
