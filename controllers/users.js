@@ -5,11 +5,18 @@ const { generateJWT } = require("../helpers/jwt");
 
 const getUsers = async (req, res = response) => {
 	try {
-		const users = await User.find();
+		const size = Number(req.query.size) || 0;
+		const from = Number(req.query.from) || 0;
+
+		const [users, total] = await Promise.all([
+			User.find({}, "name email role google image").skip(from).limit(size),
+			User.count(),
+		]);
+
 		res.json({
 			ok: true,
-			users: users,
-			uid: req.uid
+			users,
+			total,
 		});
 	} catch (error) {
 		console.error(error);
@@ -27,7 +34,7 @@ const createUser = async (req, res = response) => {
 		const userExists = await User.findOne({ email });
 
 		if (userExists) {
-			return res.status(400).json({
+			return res.status(409).json({
 				ok: false,
 				msg: "The email has already been used",
 			});
@@ -39,12 +46,12 @@ const createUser = async (req, res = response) => {
 		const salt = bcrypt.genSaltSync();
 		user.password = bcrypt.hashSync(password, salt);
 
-		await user.save();
-		const token = await generateJWT(user.id);
+		const userDB = await user.save();
+		const token = await generateJWT(userDB.id);
 
 		res.json({
 			ok: true,
-			user,
+			userDB,
 			token,
 		});
 	} catch (error) {
@@ -57,7 +64,6 @@ const createUser = async (req, res = response) => {
 };
 
 const updateUser = async (req, res = response) => {
-	// TODO: validation Token
 
 	const uid = req.params.id;
 
@@ -73,7 +79,7 @@ const updateUser = async (req, res = response) => {
 
 		const { password, google, email, ...fields } = req.body;
 		const emailChanged = userDB.email !== email;
-		const userExists = User.findOne({ email });
+		const userExists = await User.findOne({ email });
 
 		if (userExists && emailChanged)
 			return res.status(400).json({
@@ -100,7 +106,7 @@ const updateUser = async (req, res = response) => {
 	}
 };
 
-deleteUser = async (req, res = response) => {
+const deleteUser = async (req, res = response) => {
 	const uid = req.params.id;
 	try {
 		const userExists = await User.findById(uid);
