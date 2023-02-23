@@ -29,12 +29,21 @@ router.put(
 	"/:id",
 	[
 		tokenValidation,
+		check("id", "The Physician's id is not valid").isMongoId(),
 		check("name", "The name is required").notEmpty(),
 		fieldValidation,
 	],
 	fieldValidation,
 	updatePhysician
 );
-router.delete("/:id", tokenValidation, deletePhysician);
+router.delete(
+	"/:id",
+	[
+		tokenValidation,
+		check("id", "The Physician's id is not valid").isMongoId(),
+		fieldValidation
+	],
+	deletePhysician
+);
 
 module.exports = router;

@@ -25,15 +25,12 @@ const createPhysician = async (req, res = response) => {
 		const physicianExists = await Physician.findOne({
 			name: req.body.name,
 		});
+
+		if (physicianExists) throw "The Physician's name already exists";
+
 		const validHospital = await Hospital.findById(hospital);
 
-		if (physicianExists)
-			return res.status(409).json({
-				ok: false,
-				msg: "The Physician's name already exists",
-			});
-
-		if (!validHospital) throw "That hospital doesn't exist";
+		if (!validHospital) throw "The hospital doesn't exist";
 
 		const physician = new Physician({ createdBy, ...req.body });
 
@@ -42,31 +39,83 @@ const createPhysician = async (req, res = response) => {
 		res.json({ ok: true, physicianDB });
 	} catch (error) {
 		console.error(error);
+		const msg = typeof error === "object" ? "Unexpected Error" : error;
+
 		res.status(500).json({
 			ok: false,
-			msg: "Unexpected Error",
+			msg,
 		});
 	}
 };
-const updatePhysician = (req, res = response) => {
+const updatePhysician = async (req, res = response) => {
 	try {
-		res.json({ ok: true });
+		const { id } = req.params;
+		const physicianExists = await Physician.findById(id);
+		if (!physicianExists) throw "The Physician doesn't exists";
+
+		const { name: newName, image, hospital, ...body } = req.body;
+
+		const hospitalHasChanged =
+			hospital && hospital !== physicianExists.hospital;
+
+		const hospitalExists = await Hospital.findById(hospital);
+
+		if (hospitalHasChanged && !hospitalExists)
+			throw "The Hospital doesn't exists";
+
+		const nameHasChanged = newName !== physicianExists.name;
+
+		const nameExists = await Physician.findOne({ name: newName });
+
+		if (nameHasChanged && nameExists)
+			throw "The Physician's name already exists";
+
+		const createdBy = req.uid;
+
+		const changes = {
+			...body,
+			name: newName,
+			createdBy,
+		};
+
+		if (hospitalHasChanged) changes.hospital = hospital;
+
+		const physicianDB = await Physician.findByIdAndUpdate(id, changes, {
+			new: true,
+		});
+
+		res.json({ ok: true, physicianDB });
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({
+
+		const unknownError = typeof error === "object";
+		const code = unknownError ? 500 : 400;
+		const msg = unknownError ? "Unexpected Error" : error;
+
+		res.status(code).json({
 			ok: false,
-			msg: "Unexpected Error",
+			msg,
 		});
 	}
 };
-const deletePhysician = (req, res = response) => {
+const deletePhysician = async (req, res = response) => {
 	try {
-		res.json({ ok: true });
+		const { id } = req.params;
+		const physicianExists = await Physician.findById(id);
+		if (!physicianExists) throw "Physician doesn't exist";
+
+		await Physician.findByIdAndDelete(id);
+
+		res.json({ ok: true , msg : "Physician deleted successfully"});
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({
+		const unknownError = typeof error === "object";
+		const code = unknownError ? 500 : 400;
+		const msg = unknownError ? "Unexpected Error" : error;
+
+		res.status(code).json({
 			ok: false,
-			msg: "Unexpected Error",
+			msg,
 		});
 	}
 };

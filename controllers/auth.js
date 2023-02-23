@@ -72,7 +72,26 @@ const googleSignin = async (req, res = response) => {
 	}
 };
 
+const updateToken = async (req, res = response) => {
+	try {
+		const { uid } = req;
+		const token = await generateJWT(uid);
+
+		res.json({
+			ok: true,
+			token,
+		});
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({
+			ok: false,
+			msg: "Unexpected Error",
+		});
+	}
+};
+
 module.exports = {
 	login,
 	googleSignin,
+	updateToken
 };
